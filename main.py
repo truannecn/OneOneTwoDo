@@ -30,7 +30,7 @@ def onAppStart(app):
     app.stepsPerSecond = 1
 
 def main():
-    runAppWithScreens(initialScreen = "timerPage")
+    runAppWithScreens(initialScreen = "landing")
 
 main()
 

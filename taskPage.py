@@ -14,6 +14,8 @@ class Task():
         self.taskMinutes = taskMinutes
         self.taskCompleted = False
         self.circleFill = None
+        self.page = 1
+        
         
     def __repr__(self):
         return f'{self.taskName}'
@@ -23,7 +25,22 @@ class Task():
         
     def completeTask(self):
         self.circleFill = "black"
-
+        
+    def initalizeBox(self, boxLeft, boxTop, baseHeight = 60, width = 430):
+        self.totalTimeInHours = self.taskHours + (self.taskMinutes/60)
+        ## For the planner view page
+        self.boxLeft = boxLeft
+        self.boxTop = boxTop
+        self.width = width
+        self.height = max(70, baseHeight * self.totalTimeInHours)
+        self.height = min(app.taskViewTop + app.taskViewHeight - 20, self.height)
+        
+    def drawBox(self):
+        print(self.boxLeft, self.width)
+        drawRect(self.boxLeft, self.boxTop, self.width, self.height, fill = 'lightBlue', border = 'black')
+        drawLabel(self.taskName, self.boxLeft+20, self.boxTop + 20, font = 'optima', size = 25, align = 'left')
+    
+        
 ########################################
 # TASK PAGE
 ########################################
@@ -87,7 +104,7 @@ def drawTasks(app):
         elif currTask.taskHours > 1:
             hour = 'hours'
             
-        if currTask.taskMinutes == 0:
+        if currTask.taskHours == 0:
             drawLabel(f'{currTask.taskMinutes} minutes', app.width * 0.5, circleY, size = 15)
         elif currTask.taskMinutes == 0:
             drawLabel(f'{currTask.taskHours} {hour}', app.width * 0.5, circleY, size = 15)
@@ -103,6 +120,8 @@ def taskPage_onMousePress(app, mouseX, mouseY):
             app.onAddTaskPopup = False
             app.tasks.append(currTask)
             currTask.addCircleCoords(app.width*.25 - 65, app.height*.10 + 80 + (40*len(app.tasks)))
+            
+            resetPopup(app)
     
     if inAddButton(app, mouseX, mouseY):
         # response = app.getTextInput('Enter a task:')
@@ -121,7 +140,10 @@ def taskPage_onMousePress(app, mouseX, mouseY):
         
     if inTimerButton(app, mouseX, mouseY):
         app.timerButtonColor = None
-        setActiveScreen('timerPage')
+        nextDrawnY = 135
+    
+            
+        setActiveScreen('planner')
     
     for i in range(len(app.tasks)):
         currTask = app.tasks[i]
@@ -306,7 +328,30 @@ def isNum(time):
             return False
     return True
 
+def resetPopup(app):
+    app.currentTask = ''
+    app.currentHour = ''
+    app.currentMinute = ''
+    
+    app.taskBoxFill = None
+    app.hourBoxFill = None
+    app.minuteBoxFill = None
+
 def distance(x0, y0, x1, y1):
     a = (x1-x0) ** 2
     b = (y1- y0) ** 2
     return (a+b) ** 0.5
+
+# def setUpTasks(app):
+#     for i in range(len(app.tasks)):
+#         currTaskBox = app.tasks[i]
+        
+#         currTaskBox.initalizeBox((app.width/2) - (app.width/3) + 15, nextDrawnY)
+#         currTaskBox.page = app.taskCurrPage
+#         nextDrawnY += currTaskBox.height
+        
+#         if nextDrawnY >= app.taskViewTop + app.taskViewHeight:
+#             app.taskTotalPages += 1
+#             currTaskBox.page = app.taskTotalPages
+#             nextDrawnY = 135
+#             currTaskBox.initalizeBox((app.width/2) - (app.width/3) + 15, nextDrawnY)

@@ -3,6 +3,7 @@ from landing import *
 from taskPage import *
 from scheduler import *
 from timerPage import *
+from planner import *
 from urllib.request import urlopen
 from PIL import Image
 
@@ -56,9 +57,21 @@ def onAppStart(app):
     app.workTime = 3
     app.breakTime = 300
     app.stepsPerSecond = 1
+    
+    ####################################
+    ## DAILY PLANNER PAGE VARIABLES
+    ####################################
+    app.taskViewLeft = app.width/2 - app.width/3
+    app.taskViewTop = 125
+    app.taskViewWidth = app.width/3
+    app.taskViewHeight = app.height * .80
+    
+    app.taskScrollOffset = 0
+    app.taskCurrPage = 1
+    app.taskTotalPages = 5
 
 def main():
-    runAppWithScreens(initialScreen = "landing")
+    runAppWithScreens(initialScreen = "taskPage")
 
 main()
 

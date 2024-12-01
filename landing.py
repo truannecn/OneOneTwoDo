@@ -8,7 +8,7 @@ from timerPage import *
 ########################################
 
 def landing_redrawAll(app):
-    drawImage('landing.jpg', 0, 0, width = app.width, height = app.height)
+    drawImage(app.landingImage, 0, 0, width = app.width, height = app.height)
     
     drawLabel("OneOneTwoDo", (.67 * app.width), app.height/2 - 100, size = 70, font = 'optima')
     drawLabel("Track Tasks  -  Plan Your Day  -  Stay Productive", (.67 * app.width), app.height/2 - 50, font = 'Times New Roman', size = 20)

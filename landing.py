@@ -13,30 +13,60 @@ def landing_redrawAll(app):
     drawLabel("OneOneTwoDo", (.67 * app.width), app.height/2 - 100, size = 70, font = 'optima')
     drawLabel("Track Tasks  -  Plan Your Day  -  Stay Productive", (.67 * app.width), app.height/2 - 50, font = 'Times New Roman', size = 20)
     
-    drawTaskPageButton(app, .67 * app.width, app.height/2 + 50)
+    drawTasksButton(app, 913, app.height/2 + 50, 200, 50)
+    drawPlannerButton(app, 913, app.height/2 + 125, 200, 50)
+    drawTimerButton(app, 913, app.height/2 + 200, 200, 50)
     
 def landing_onMouseMove(app, mouseX, mouseY):
-    if inTaskOnLand(app, mouseX, mouseY):
-        app.taskButtonColor = 'gray'
+    if inTasksOnLand(app, mouseX, mouseY):
+        print('in!')
+        app.tasksOnLandingFill = 'gray'
     else:
-        app.taskButtonColor = None
-    
+        app.tasksOnLandingFill = None
+        
+    if inPlannerOnLand(app, mouseX, mouseY):
+        app.plannerOnLandingFill = 'gray'
+    else:
+         app.plannerOnLandingFill = None
+        
+    if inTimerOnLand(app, mouseX, mouseY):
+        app.timerOnLandingFill = 'gray'
+    else:
+        app.timerOnLandingFill = None
+        
 def landing_onMousePress(app, mouseX, mouseY):
-    if inTaskOnLand(app, mouseX, mouseY):
-        app.taskButtonColor = None
+    if inTasksOnLand(app, mouseX, mouseY):
+        app.tasksOnLandingFill = None
         setActiveScreen('taskPage')
+    
+    if inPlannerOnLand(app, mouseX, mouseY):
+        app.plannerOnLandingFill = None
+        setActiveScreen('planner')
+    
+    if inTimerOnLand(app, mouseX, mouseY):
+        app.timerOnLandingFill = None
+        setActiveScreen('timerPage')
+        
+        
 
-def drawTaskPageButton(app, x, y):
-    drawRect(x, y, 200, 50, align = 'center', fill = app.taskButtonColor, border = 'black')
-    drawLabel('Tasks', x, y, font = 'times new roman', size = 25)
+def drawTasksButton(app, buttonLeft, buttonTop, width, height):
+    drawRect(buttonLeft, buttonTop, width, height, fill = app.tasksOnLandingFill, border = 'black', opacity = 50)
+    drawLabel(f'Tasks', buttonLeft + width/2, buttonTop + height/2, font = 'optima', size = 20)
 
-def drawDailyPageButton(app, x, y):
-    drawRect(x, y, 200, 50, align = 'center', fill = app.taskButtonColor, border = 'black')
-    drawLabel('Daily', x, y, font = 'times new roman', size = 25)
+def drawPlannerButton(app, buttonLeft, buttonTop, width, height):
+    drawRect(buttonLeft, buttonTop, width, height, fill = app.plannerOnLandingFill, border = 'black', opacity = 50)
+    drawLabel(f'Planner', buttonLeft + width/2, buttonTop + height/2, font = 'optima', size = 20)
+  
+def drawTimerButton(app, buttonLeft, buttonTop, width, height):
+    drawRect(buttonLeft, buttonTop, width, height, fill = app.timerOnLandingFill, border = 'black', opacity = 50)
+    drawLabel(f'Timer', buttonLeft + width/2, buttonTop + height/2, font = 'optima', size = 20)
 
-def drawDailyPageButton(app, x, y):
-    drawRect(x, y, 200, 50, align = 'center', fill = app.taskButtonColor, border = 'black')
-    drawLabel('Daily', x, y, font = 'times new roman', size = 25)
 
-def inTaskOnLand(app, mouseX, mouseY):
-    return (.67 * app.width) - 100 < mouseX < (.67 * app.width) + 100 and (app.height/2 + 25) < mouseY < (app.height/2 + 75)
+def inTasksOnLand(app, mouseX, mouseY):
+    return 913 < mouseX < 1113 and app.height/2 + 50 < mouseY < app.height/2 + 100
+
+def inPlannerOnLand(app, mouseX, mouseY):
+    return 913 < mouseX < 1113 and app.height/2 + 125 < mouseY < app.height/2 + 175
+
+def inTimerOnLand(app, mouseX, mouseY):
+    return 913 < mouseX < 1113 and app.height/2 + 200 < mouseY < app.height/2 + 250

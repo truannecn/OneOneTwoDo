@@ -22,6 +22,12 @@ class Task():
     
     def addCircleCoords(self, x, y):
         self.circleCoords = (x, y)
+    
+    def addDeleteCoords(self, x, y):
+        self.deleteCoords = (x, y)
+        
+    def addEditCoords(self, x, y):
+        self.editCoords = (x, y)
         
     def completeTask(self):
         self.circleFill = "black"
@@ -68,9 +74,15 @@ def taskPage_redrawAll(app):
     
     ## Add Task Button
     drawRect(taskX + 160, taskY + 6, 100, 30, align = 'center', fill = app.addButtonColor, border = 'black')
-    drawLabel('Add Task', taskX + 160, taskY + 6, size = 15)
+    drawLabel('Add Task', taskX + 160, taskY + 6, size = 15, font = 'optima')
+    
+    ## Edit mode button
+    drawRect(taskX + 270, taskY + 6, 100, 30, align = 'center', fill = app.editButtonFill, border = 'black')
+    drawLabel(app.editMessage, taskX + 270, taskY + 6, size = 15, font = 'optima')
     
     drawTasks(app)
+    if app.editMode:
+        drawEditModeButtons(app)
     
     if app.onAddTaskPopup:
         drawAddTaskPopup(app)
@@ -98,32 +110,75 @@ def drawTasks(app):
         currTask = app.tasks[i]
         circleX, circleY = currTask.circleCoords
         drawCircle(circleX, circleY, 10, fill = currTask.circleFill, border = 'black')
-        drawLabel(currTask.taskName, circleX + 20, circleY, align = 'left', size = 15)
+        drawLabel(currTask.taskName, circleX + 20, circleY, align = 'left', size = 20, font = 'times new roman')
         if currTask.taskHours == 1:
             hour = 'hour'
         elif currTask.taskHours > 1:
             hour = 'hours'
             
         if currTask.taskHours == 0:
-            drawLabel(f'{currTask.taskMinutes} minutes', app.width * 0.5, circleY, size = 15)
+            drawLabel(f'{currTask.taskMinutes} minutes', app.width * 0.5, circleY, size = 20, font = 'times new roman')
         elif currTask.taskMinutes == 0:
-            drawLabel(f'{currTask.taskHours} {hour}', app.width * 0.5, circleY, size = 15)
+            drawLabel(f'{currTask.taskHours} {hour}', app.width * 0.5, circleY, size = 20, font = 'times new roman')
         else:
-            drawLabel(f'{currTask.taskHours} {hour} {currTask.taskMinutes} minutes', app.width * 0.5, circleY, size = 15)
+            drawLabel(f'{currTask.taskHours} {hour} {currTask.taskMinutes} minutes', app.width * 0.5, circleY, size = 20, font = 'times new roman')
     
         
 
 def taskPage_onMousePress(app, mouseX, mouseY):
-    if app.onAddTaskPopup:
-        if inSaveButton(app, mouseX, mouseY):
-            currTask = Task(app.currentTask, int(app.currentHour), int(app.currentMinute))
-            app.onAddTaskPopup = False
-            app.tasks.append(currTask)
-            currTask.addCircleCoords(app.width*.25 - 65, app.height*.10 + 80 + (40*len(app.tasks)))
+    if app.editMode:
+        for i in range(len(app.tasks)):
+            currTask = app.tasks[i]
+            deleteLeft, deleteTop = currTask.deleteCoords
+            deleteLeft = deleteLeft - 15
+            deleteTop -= 15
             
+            editLeft, editTop = currTask.editCoords
+            editLeft -= 15
+            editTop -= 15
+            
+            if deleteLeft < mouseX < deleteLeft + 30 and deleteTop < mouseY < deleteTop + 30:
+                deleteTask(app, i)
+                moveOtherTasks(app, i)
+                return
+            
+            if editLeft < mouseX < editLeft + 30 and editTop < mouseY < editTop + 30:
+                app.onAddTaskPopup = True
+                app.currentTaskBeingEdited = app.tasks[i]
+            
+        
+    
+    if app.onAddTaskPopup:
+        if app.editMode and not inSaveButton(app, mouseX, mouseY):
+            app.currentTask = app.currentTaskBeingEdited.taskName
+            app.currentHour = str(app.currentTaskBeingEdited.taskHours)
+            app.currentMinute = str(app.currentTaskBeingEdited.taskMinutes)
+            
+        if inSaveButton(app, mouseX, mouseY):
+            if not app.editMode:
+                currTask = Task(app.currentTask, int(app.currentHour), int(app.currentMinute))
+                app.onAddTaskPopup = False
+                app.tasks.append(currTask)
+                currTask.addCircleCoords(app.width*.25 - 65, app.height*.10 + 100 + (40*len(app.tasks)))
+                currTask.addDeleteCoords(app.width*.25 - 100, app.height*.10 + 100 + (40*len(app.tasks)))
+                currTask.addEditCoords(app.width*.25 - 130, app.height*.10 + 100 + (40*len(app.tasks)))
+                resetPopup(app)
+            
+            elif app.editMode:
+                app.currentTaskBeingEdited.taskName = app.currentTask
+                print(f'{app.currentTask}')
+                app.currentTaskBeingEdited.taskHours = int(app.currentHour)
+                app.currentTaskBeingEdited.taskMinutes = int(app.currentMinute)
+                resetPopup(app)
+                app.onAddTaskPopup = False
+        
+        if inExitButton(app, mouseX, mouseY):
             resetPopup(app)
+            app.onAddTaskPopup = False
+            
     
     if inAddButton(app, mouseX, mouseY):
+        app.addButtonColor = None
         # response = app.getTextInput('Enter a task:')
         # time = app.getTextInput('Time (in minutes) needed to complete task (must be in a number!):')
         app.onAddTaskPopup = True
@@ -134,6 +189,15 @@ def taskPage_onMousePress(app, mouseX, mouseY):
         #     app.tasks.append(currTask)
         #     currTask.addCircleCoords(app.width*.25 - 65, app.height*.10 + 80 + (40*len(app.tasks)))
 
+    if inEditButton(app, mouseX, mouseY):
+        app.editMode = not app.editMode
+        
+        if app.editMode:
+            app.editMessage = 'Done!'
+        else:
+            app.editMessage = 'Edit Mode'
+        
+    
     if inHomeOnTasks(app, mouseX, mouseY): 
         app.homeButtonColor = None
         setActiveScreen('landing')
@@ -192,6 +256,14 @@ def taskPage_onMousePress(app, mouseX, mouseY):
         app.hourBoxFill = None
         app.minuteBoxFill = None
         
+def deleteTask(app, i):
+    app.tasks.pop(i)
+
+def moveOtherTasks(app, i):
+    for task in app.tasks[i:]:
+        print(task)
+        task.circleCoords = (task.circleCoords[0], task.circleCoords[1]-40)
+        task.deleteCoords = (task.deleteCoords[0], task.deleteCoords[1]-40)
             
 def taskPage_onMouseMove(app, mouseX, mouseY):
     if not app.onAddTaskPopup:
@@ -215,6 +287,13 @@ def taskPage_onMouseMove(app, mouseX, mouseY):
         else:
             app.plannerOnTasksFill = None
             
+        if inEditButton(app, mouseX, mouseY):
+            app.editButtonFill = 'gray'
+        else:
+            app.editButtonFill = None
+            
+
+            
 def taskPage_onKeyPress(app, key):
     if app.inTaskBox:
         if key == 'space':
@@ -223,6 +302,8 @@ def taskPage_onKeyPress(app, key):
             app.currentTask = app.currentTask[:-1]
         elif len(key) == 1:
             app.currentTask += key
+        
+        print(app.currentTask)
             
     if app.inHourBox:
         if key == 'backspace' and app.currentHour != '':
@@ -253,6 +334,10 @@ def drawAddTaskPopup(app):
     boxTop = app.height/2 - (app.height/2.5/2)
     boxWidth = app.width/2.5
     boxHeight = app.height/2.5
+    
+    ## CITATION
+    ## ICON BELOW FOUND FROM https://icons8.com/icon/ZV8D2YZ6852I/x 
+    drawImage('exit.png', boxLeft + boxWidth - 45, boxTop + 15, width = 35, height = 35)
     
     drawLabel('Enter task below:', boxLeft + boxWidth/2, boxTop + 50, size = 20, font = 'optima')
     drawRect(boxLeft + boxWidth/2, boxTop + 90, 400, 40, fill = app.taskBoxFill, border = 'black', align = 'center')
@@ -331,6 +416,17 @@ def inTimerOnTasks(app, mouseX, mouseY):
 def inSaveButton(app, mouseX, mouseY):
     return 940 < mouseX < 1040 and 590 < mouseY < 620
 
+def inEditButton(app, mouseX, mouseY):
+    return app.width*.25 + 270 - 50 < mouseX < app.width*.25 + 370 - 50 and app.height*.10 + 6 - 15 < mouseY < app.height*.10 + 6 + 15
+
+
+def inExitButton(app, mouseX, mouseY):
+    boxLeft = app.width/2 - (app.width/2.5/2)
+    boxTop = app.height/2 - (app.height/2.5/2)
+    boxWidth = app.width/2.5
+    boxHeight = app.height/2.5
+    return boxLeft + boxWidth - 45 < mouseX < boxLeft + boxWidth - 45 + 35 and boxTop + 15 < mouseY < boxTop + 15 + 35
+
 def isNum(time):
     for chr in time:
         if not chr.isdigit():
@@ -376,3 +472,13 @@ def drawTimerButton(app, buttonLeft, buttonTop, width, height):
 def drawPlannerButton(app, buttonLeft, buttonTop, width, height):
     drawRect(buttonLeft, buttonTop, width, height, fill = app.plannerOnTasksFill, border = 'black', opacity = 50)
     drawLabel(f'Planner', buttonLeft + width/2, buttonTop + height/2, font = 'optima', size = 20)
+    
+def drawEditModeButtons(app):
+    for i in range(len(app.tasks)):
+        currTask = app.tasks[i]
+        deleteX, deleteY = currTask.deleteCoords
+        editX, editY = currTask.editCoords
+        ## CITATION - IMAGE FROM https://icons8.com/icon/set/x/sf-regular
+        drawImage('deleteIcon.png', deleteX, deleteY, align='center', width = 30, height = 30)
+        ## CITATION - IMAGE FROM https://icons8.com/icon/set/edit/sf-regular
+        drawImage('editIcon.png', editX, editY, align = 'center', width = 30, height = 30)

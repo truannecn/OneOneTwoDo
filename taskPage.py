@@ -36,8 +36,7 @@ class Task():
         self.height = min(app.taskViewTop + app.taskViewHeight - 20, self.height)
         
     def drawBox(self):
-        print(self.boxLeft, self.width)
-        drawRect(self.boxLeft, self.boxTop, self.width, self.height, fill = 'lightBlue', border = 'black')
+        drawRect(self.boxLeft, self.boxTop, self.width, self.height, fill = 'burlyWood', border = 'black')
         drawLabel(self.taskName, self.boxLeft+20, self.boxTop + 20, font = 'optima', size = 25, align = 'left')
     
         
@@ -46,19 +45,20 @@ class Task():
 ########################################
 
 def taskPage_redrawAll(app):
-    
+    drawImage(app.todoListImage, 0, 0, width = app.width, height = app.height)
     ## Side Navigation Bar
     
     ##HomeButton
-    drawRect(20, app.height*.25, 200, 50, fill = app.homeButtonColor, border = 'black')
-    drawLabel('Home', 120, app.height*.25+25, size = 30, font = 'optima')
+    drawHomeButton(app, 20, app.height*.3, 200, 50)
+    drawPlannerButton(app, 20, app.height*.4, 200, 50)
+    drawTimerButton(app, 20, app.height*.5, 200, 50)
     
-    ## Timer Button
-    drawRect(20, app.height*.35, 200, 50, fill = app.timerButtonColor, border = 'black')
-    drawLabel('Timer', 120, app.height*.35 + 25, size = 30, font = 'optima')
+    # ## Timer Button
+    # drawRect(20, app.height*.35, 200, 50, fill = app.timerButtonColor, border = 'black')
+    # drawLabel('Timer', 120, app.height*.35 + 25, size = 30, font = 'optima')
     
-    ## Schedule Button
-    drawRect(20, app.height*.35, 200, 50, fill = None, border = 'black')
+    # ## Schedule Button
+    # drawRect(20, app.height*.35, 200, 50, fill = None, border = 'black')
     
     drawLabel('Task List', app.width * .25, app.height * .10, size = 50, font = 'optima')
     drawLine(290, 140, 480, 140)
@@ -80,7 +80,7 @@ def taskPage_redrawAll(app):
         drawLabel('Save', 990, 605, size = 20, font = 'optima')
         
 def allFieldsFilled(app):
-    return app.currentTask != '' and app.currentHour != '' and app.currentMinute != ''
+    return app.currentTask != '' and app.currentHour != '' and app.currentMinute != '' and not (int(app.currentHour) == 0 and int(app.currentMinute) == 0)
     
 def convertTime(app, time):
     if time < 60:
@@ -134,15 +134,17 @@ def taskPage_onMousePress(app, mouseX, mouseY):
         #     app.tasks.append(currTask)
         #     currTask.addCircleCoords(app.width*.25 - 65, app.height*.10 + 80 + (40*len(app.tasks)))
 
-    if inHomeButton(app, mouseX, mouseY): 
+    if inHomeOnTasks(app, mouseX, mouseY): 
         app.homeButtonColor = None
         setActiveScreen('landing')
         
-    if inTimerButton(app, mouseX, mouseY):
+    if inTimerOnTasks(app, mouseX, mouseY):
+        app.timerOnTasksFill = None
+        setActiveScreen('timerPage')
+        
+    if inPlannerOnTasks(app, mouseX, mouseY):
         app.timerButtonColor = None
         nextDrawnY = 135
-    
-            
         setActiveScreen('planner')
     
     for i in range(len(app.tasks)):
@@ -193,20 +195,25 @@ def taskPage_onMousePress(app, mouseX, mouseY):
             
 def taskPage_onMouseMove(app, mouseX, mouseY):
     if not app.onAddTaskPopup:
-        if inHomeButton(app, mouseX, mouseY):
-            app.homeButtonColor = 'gray'
+        if inHomeOnTasks(app, mouseX, mouseY):
+            app.homeOnTasksFill = 'gray'
         else:
-            app.homeButtonColor = None
+            app.homeOnTasksFill = None
         
         if inAddButton(app, mouseX, mouseY):
             app.addButtonColor = 'gray'
         else:
             app.addButtonColor = None
             
-        if inTimerButton(app, mouseX, mouseY):
-            app.timerButtonColor = 'gray'
+        if inTimerOnTasks(app, mouseX, mouseY):
+            app.timerOnTasksFill = 'gray'
         else:
-            app.timerButtonColor = None
+            app.timerOnTasksFill = None
+            
+        if inPlannerOnTasks(app, mouseX, mouseY):
+            app.plannerOnTasksFill = 'gray'
+        else:
+            app.plannerOnTasksFill = None
             
 def taskPage_onKeyPress(app, key):
     if app.inTaskBox:
@@ -240,7 +247,6 @@ def taskPage_onKeyPress(app, key):
         
         
 def drawAddTaskPopup(app):
-    print(app.inTaskBox, app.inHourBox, app.inMinuteBox)
     drawRect(0, 0, app.width, app.height, fill = 'black', opacity = 40)
     drawRect(app.width/2, app.height/2, app.width/2.5, app.height/2.5, align = 'center', fill = 'white', border = 'black')
     boxLeft = app.width/2 - (app.width/2.5/2)
@@ -313,11 +319,14 @@ def inMinuteBox(app, mouseX, mouseY):
 def inAddButton(app, mouseX, mouseY):
     return app.width*.25 + 160 - 50 < mouseX < app.width*.25 + 160 + 50 and app.height*.10 + 6 - 15 < mouseY < app.height*.10 + 6 + 15
 
-def inHomeButton(app, mouseX, mouseY):
-    return 20 < mouseX < 220 and app.height*.25 < mouseY < app.height*.25 + 50
+def inHomeOnTasks(app, mouseX, mouseY):
+    return 20 < mouseX < 220 and app.height*.3 < mouseY < app.height*.3 + 50
 
-def inTimerButton(app, mouseX, mouseY):
-    return 20 < mouseX < 220 and app.height*.35 < mouseY < app.height*.35 + 50
+def inPlannerOnTasks(app, mouseX, mouseY):
+    return 20 < mouseX < 220 and app.height*.4 < mouseY < app.height*.4 + 50
+
+def inTimerOnTasks(app, mouseX, mouseY):
+    return 20 < mouseX < 220 and app.height*.5 < mouseY < app.height*.5 + 50
 
 def inSaveButton(app, mouseX, mouseY):
     return 940 < mouseX < 1040 and 590 < mouseY < 620
@@ -355,3 +364,15 @@ def distance(x0, y0, x1, y1):
 #             currTaskBox.page = app.taskTotalPages
 #             nextDrawnY = 135
 #             currTaskBox.initalizeBox((app.width/2) - (app.width/3) + 15, nextDrawnY)
+
+def drawHomeButton(app, buttonLeft, buttonTop, width, height):
+    drawRect(buttonLeft, buttonTop, width, height, fill = app.homeOnTasksFill, border = 'black', opacity = 50)
+    drawLabel(f'Home', buttonLeft + width/2, buttonTop + height/2, font = 'optima', size = 20)
+  
+def drawTimerButton(app, buttonLeft, buttonTop, width, height):
+    drawRect(buttonLeft, buttonTop, width, height, fill = app.timerOnTasksFill, border = 'black', opacity = 50)
+    drawLabel(f'Timer', buttonLeft + width/2, buttonTop + height/2, font = 'optima', size = 20)
+
+def drawPlannerButton(app, buttonLeft, buttonTop, width, height):
+    drawRect(buttonLeft, buttonTop, width, height, fill = app.plannerOnTasksFill, border = 'black', opacity = 50)
+    drawLabel(f'Planner', buttonLeft + width/2, buttonTop + height/2, font = 'optima', size = 20)

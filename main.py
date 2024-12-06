@@ -47,6 +47,7 @@ def onAppStart(app):
     
     app.timerOnTasksFill = None
     app.plannerOnTasksFill = None
+    app.schedulerOnTasksFill = None
     app.onAddTaskPopup = False
     
     app.inTaskBox = False
@@ -135,26 +136,38 @@ def onAppStart(app):
     app.homeOnPlannerFill = None
     app.timerOnPlannerFill = None
     app.tasksOnPlannerFill = None
+    app.schedulerOnPlannerFill = None
+    
+    ##other button fill colors
+    app.doneOnCalendarPopup = None
     
     ## DAILY VIEW VARIABLES
-    # app.dailyViewLeft
-    # app.dailyViewTop
+    app.dailyViewLeft = app.width/2
+    app.dailyViewTop = 125
     app.dailyViewHeight = app.height * .8
     app.dailyViewWidth = app.width/2.25
     app.dayViewHeight = 24 * 4 * 32
     app.dailyScrollOffset = 0
     # app.dayViewHeight = 18 * 2 * 25
     
+    
     app.lastMouseY = None
     app.dailyScrollBarDragging = False
     
-    ##Dragable Blocks
-    app.draggingTask = None  # Task currently being dragged
-    app.dragOffsetX = 0  # Offset between mouse click and block left
-    app.dragOffsetY = 0  # Offset between mouse click and block top
-    app.validDropZoneLeft = app.width / 2  # Left edge of the daily view
-    app.validDropZoneWidth = app.dailyViewWidth  # Width of the daily view
-    app.plannerTasks = []
+    # ## Draggable Blocks
+    # app.draggingTask = None  # Task currently being dragged
+    # app.dragOffsetX = 0  # Offset between mouse click and block left
+    # app.dragOffsetY = 0  # Offset between mouse click and block top
+    # app.validDropZoneLeft = app.width / 2  # Left edge of the daily view
+    # app.validDropZoneWidth = app.dailyViewWidth  # Width of the daily view
+    # app.plannerTasks = []
+    
+    ## Calendar Variables
+    
+    app.calendarEvents = []
+    app.eventColor = 'white'
+    app.onEditCalendar = False
+    
     
     ####################################
     ## SCHEDULER PAGE VARIABLES
@@ -174,7 +187,7 @@ def onAppStart(app):
     app.schedule = []
     app.leftOverTasks = []
 def main():
-    runAppWithScreens(initialScreen = "landing")
+    runAppWithScreens(initialScreen = "planner")
 
 main()
 

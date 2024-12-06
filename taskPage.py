@@ -104,6 +104,8 @@ def taskPage_redrawAll(app):
     drawHomeButton(app, 20, app.height*.3, 200, 50)
     drawPlannerButton(app, 20, app.height*.4, 200, 50)
     drawTimerButton(app, 20, app.height*.5, 200, 50)
+    drawSchedulerButton(app, 20, app.height*.6, 200, 50)
+   
     
     # ## Timer Button
     # drawRect(20, app.height*.35, 200, 50, fill = app.timerButtonColor, border = 'black')
@@ -121,7 +123,7 @@ def taskPage_redrawAll(app):
     ## Add Task Button
     drawRect(taskX + 160, taskY + 6, 100, 30, align = 'center', fill = app.addButtonColor, border = 'black')
     drawLabel('Add Task', taskX + 160, taskY + 6, size = 15, font = 'optima')
-    
+
     ## Edit mode button
     drawRect(taskX + 270, taskY + 6, 100, 30, align = 'center', fill = app.editButtonFill, border = 'black')
     drawLabel(app.editMessage, taskX + 270, taskY + 6, size = 15, font = 'optima')
@@ -257,6 +259,10 @@ def taskPage_onMousePress(app, mouseX, mouseY):
         nextDrawnY = 135
         setActiveScreen('planner')
     
+    if inSchedulerOnTasks(app, mouseX, mouseY):
+        app.schedulerOnPlannerFill = None
+        setActiveScreen('scheduler')
+    
     for i in range(len(app.tasks)):
         currTask = app.tasks[i]
         circleX, circleY = currTask.circleCoords
@@ -333,10 +339,17 @@ def taskPage_onMouseMove(app, mouseX, mouseY):
         else:
             app.plannerOnTasksFill = None
             
+        if inSchedulerOnTasks(mouseX, mouseY):
+            app.schedulerOnTasksFill = 'gray'
+        else:
+            app.schedulerOnTasksFill = None
+             
         if inEditButton(app, mouseX, mouseY):
             app.editButtonFill = 'gray'
         else:
             app.editButtonFill = None
+        
+
             
 
             
@@ -459,6 +472,9 @@ def inPlannerOnTasks(app, mouseX, mouseY):
 def inTimerOnTasks(app, mouseX, mouseY):
     return 20 < mouseX < 220 and app.height*.5 < mouseY < app.height*.5 + 50
 
+def inSchedulerOnTasks(app, mouseX, mouseY):
+    return 20 < mouseX < 220 and app.height*.6 < mouseY < app.height*.6 + 50
+
 def inSaveButton(app, mouseX, mouseY):
     return 940 < mouseX < 1040 and 590 < mouseY < 620
 
@@ -518,6 +534,10 @@ def drawTimerButton(app, buttonLeft, buttonTop, width, height):
 def drawPlannerButton(app, buttonLeft, buttonTop, width, height):
     drawRect(buttonLeft, buttonTop, width, height, fill = app.plannerOnTasksFill, border = 'black', opacity = 50)
     drawLabel(f'Planner', buttonLeft + width/2, buttonTop + height/2, font = 'optima', size = 20)
+    
+def drawScheduleButton(app, buttonLeft, buttonTop, width, height):
+    drawRect(buttonLeft, buttonTop, width, height, fill = app.schedulerOnTasksFill, border = 'black', opacity = 50)
+    drawLabel(f'Scheduler', buttonLeft + width/2, buttonTop + height/2, font = 'optima', size = 20)
     
 def drawEditModeButtons(app):
     for i in range(len(app.tasks)):

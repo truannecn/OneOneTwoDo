@@ -2,6 +2,7 @@ from cmu_graphics import *
 from landing import *
 from timerPage import *
 import string
+import random
 
 ########################################
 # TASK CLASSES
@@ -19,6 +20,12 @@ class Task():
         print(self.taskFloat)
         self.startTimeFloat = 0
         self.endTimeFloat = 0
+        
+        ## RANDOM COLOR SELECTION
+        
+        colorList = ['papayaWhip','powderBlue','thistle','pink','lightGreen','lightSalmon']
+        y = random.randint(0,5)
+        self.colorFill = colorList[y]
         
     def __repr__(self):
         return f'{self.taskName}'
@@ -45,7 +52,7 @@ class Task():
         self.height = min(app.taskViewTop + app.taskViewHeight - 20, self.height)
         
     def drawBox(self):
-        drawRect(self.boxLeft, self.boxTop, self.width, self.height, fill = 'burlyWood', border = 'black')
+        drawRect(self.boxLeft, self.boxTop, self.width, self.height, fill = self.colorFill, border = 'black')
         drawLabel(self.taskName, self.boxLeft+20, self.boxTop + 20, font = 'optima', size = 25, align = 'left')
     
     def assignEndTime(self):
@@ -171,7 +178,8 @@ def drawTasks(app):
         else:
             drawLabel(f'{currTask.taskHours} {hour} {currTask.taskMinutes} minutes', app.width * 0.5, circleY, size = 20, font = 'times new roman')
     
-        
+        if currTask.taskCompleted:
+            drawLine(circleX - 20, circleY, circleX + 600, circleY, lineWidth = 2)
 
 def taskPage_onMousePress(app, mouseX, mouseY):
     if app.editMode:
@@ -195,7 +203,6 @@ def taskPage_onMousePress(app, mouseX, mouseY):
                 app.currentTaskBeingEdited = app.tasks[i]
             
         
-    
     if app.onAddTaskPopup:
         if app.editMode and not inSaveButton(app, mouseX, mouseY):
             app.currentTask = app.currentTaskBeingEdited.taskName
@@ -224,18 +231,18 @@ def taskPage_onMousePress(app, mouseX, mouseY):
             resetPopup(app)
             app.onAddTaskPopup = False
             
-    
-    if inAddButton(app, mouseX, mouseY):
-        app.addButtonColor = None
-        # response = app.getTextInput('Enter a task:')
-        # time = app.getTextInput('Time (in minutes) needed to complete task (must be in a number!):')
-        app.onAddTaskPopup = True
-        
-        
-        # if response != '' and time != '0' and isNum(time):
-        #     currTask = Task(response, int(time))
-        #     app.tasks.append(currTask)
-        #     currTask.addCircleCoords(app.width*.25 - 65, app.height*.10 + 80 + (40*len(app.tasks)))
+    if not app.editMode:
+        if inAddButton(app, mouseX, mouseY):
+            app.addButtonColor = None
+            # response = app.getTextInput('Enter a task:')
+            # time = app.getTextInput('Time (in minutes) needed to complete task (must be in a number!):')
+            app.onAddTaskPopup = True
+            
+            
+            # if response != '' and time != '0' and isNum(time):
+            #     currTask = Task(response, int(time))
+            #     app.tasks.append(currTask)
+            #     currTask.addCircleCoords(app.width*.25 - 65, app.height*.10 + 80 + (40*len(app.tasks)))
 
     if inEditButton(app, mouseX, mouseY):
         app.editMode = not app.editMode
@@ -263,16 +270,17 @@ def taskPage_onMousePress(app, mouseX, mouseY):
         app.schedulerOnPlannerFill = None
         setActiveScreen('scheduler')
     
-    for i in range(len(app.tasks)):
-        currTask = app.tasks[i]
-        circleX, circleY = currTask.circleCoords
-        if distance(mouseX, mouseY, circleX, circleY) < 10:
-            if not currTask.taskCompleted:
-                currTask.circleFill = "black"
-                currTask.taskCompleted = True
-            else:
-                currTask.circleFill = None
-                currTask.taskCompleted = False
+    if not app.editMode:
+        for i in range(len(app.tasks)):
+            currTask = app.tasks[i]
+            circleX, circleY = currTask.circleCoords
+            if distance(mouseX, mouseY, circleX, circleY) < 10:
+                if not currTask.taskCompleted:
+                    currTask.circleFill = "black"
+                    currTask.taskCompleted = True
+                else:
+                    currTask.circleFill = None
+                    currTask.taskCompleted = False
     
     ########
     # POPUP 
@@ -313,9 +321,10 @@ def deleteTask(app, i):
 
 def moveOtherTasks(app, i):
     for task in app.tasks[i:]:
-        print(task)
         task.circleCoords = (task.circleCoords[0], task.circleCoords[1]-40)
         task.deleteCoords = (task.deleteCoords[0], task.deleteCoords[1]-40)
+        task.editCoords = (task.editCoords[0], task.editCoords[1]-40)
+        
             
 def taskPage_onMouseMove(app, mouseX, mouseY):
     if not app.onAddTaskPopup:
@@ -339,7 +348,7 @@ def taskPage_onMouseMove(app, mouseX, mouseY):
         else:
             app.plannerOnTasksFill = None
             
-        if inSchedulerOnTasks(mouseX, mouseY):
+        if inSchedulerOnTasks(app, mouseX, mouseY):
             app.schedulerOnTasksFill = 'gray'
         else:
             app.schedulerOnTasksFill = None
@@ -396,7 +405,7 @@ def drawAddTaskPopup(app):
     
     ## CITATION
     ## ICON BELOW FOUND FROM https://icons8.com/icon/ZV8D2YZ6852I/x 
-    drawImage('exit.png', boxLeft + boxWidth - 45, boxTop + 15, width = 35, height = 35)
+    drawImage('images/exit.png', boxLeft + boxWidth - 45, boxTop + 15, width = 35, height = 35)
     
     drawLabel('Enter task below:', boxLeft + boxWidth/2, boxTop + 50, size = 20, font = 'optima')
     drawRect(boxLeft + boxWidth/2, boxTop + 90, 400, 40, fill = app.taskBoxFill, border = 'black', align = 'center')
@@ -535,7 +544,7 @@ def drawPlannerButton(app, buttonLeft, buttonTop, width, height):
     drawRect(buttonLeft, buttonTop, width, height, fill = app.plannerOnTasksFill, border = 'black', opacity = 50)
     drawLabel(f'Planner', buttonLeft + width/2, buttonTop + height/2, font = 'optima', size = 20)
     
-def drawScheduleButton(app, buttonLeft, buttonTop, width, height):
+def drawSchedulerButton(app, buttonLeft, buttonTop, width, height):
     drawRect(buttonLeft, buttonTop, width, height, fill = app.schedulerOnTasksFill, border = 'black', opacity = 50)
     drawLabel(f'Scheduler', buttonLeft + width/2, buttonTop + height/2, font = 'optima', size = 20)
     
@@ -545,6 +554,6 @@ def drawEditModeButtons(app):
         deleteX, deleteY = currTask.deleteCoords
         editX, editY = currTask.editCoords
         ## CITATION - IMAGE FROM https://icons8.com/icon/set/x/sf-regular
-        drawImage('deleteIcon.png', deleteX, deleteY, align='center', width = 30, height = 30)
+        drawImage('images/deleteIcon.png', deleteX, deleteY, align='center', width = 30, height = 30)
         ## CITATION - IMAGE FROM https://icons8.com/icon/set/edit/sf-regular
-        drawImage('editIcon.png', editX, editY, align = 'center', width = 30, height = 30)
+        drawImage('images/editIcon.png', editX, editY, align = 'center', width = 30, height = 30)

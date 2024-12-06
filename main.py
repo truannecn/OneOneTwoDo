@@ -16,6 +16,14 @@ def loadPilImage(url):
 def onAppStart(app):
     app.height = 916
     app.width = 1512
+    
+    ## GENERAL BACKGROUND IMAGE
+    ## CITATION IMAGE IS FROM: https://unsplash.com/photos/background-pattern-d8cv2ekRABU
+    url = 'https://images.unsplash.com/photo-1656274404439-b8b463c73194?q=80&w=3096&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+    genBgImage = loadPilImage(url)
+    
+    app.genBgImage = CMUImage(genBgImage)
+    
     ####################################
     ## LANDING PAGE VARIABLES
     ####################################
@@ -106,6 +114,10 @@ def onAppStart(app):
     app.tasksOnTimerFill = None
     app.plannerOnTimerFill = None
     app.schedulerOnTimerFill = None
+    
+    app.timerBoxFill = 'white'
+    
+    app.timerButtonFill = None
 
     
     ####################################
@@ -140,6 +152,8 @@ def onAppStart(app):
     
     ##other button fill colors
     app.doneOnCalendarPopup = None
+    app.calendarAddFill = None
+    app.editCalendarFill = None
     
     ## DAILY VIEW VARIABLES
     app.dailyViewLeft = app.width/2
@@ -173,10 +187,21 @@ def onAppStart(app):
     ## SCHEDULER PAGE VARIABLES
     ####################################
     
-    app.section = 'intro2'
+    ## NAVI BUTTON FILLS
+    app.homeOnSchedulerFill = None
+    app.tasksOnSchedulerFill = None
+    app.timerOnSchedulerFill = None
+    app.plannerOnSchedulerFill = None
     
-    app.startTimeSchedule = 10
-    app.endTimeSchedule = 21
+    # OTHER FILL COLORS
+    app.returnFill = None
+    app.next1Fill = None
+    app.createButtonFill = None
+    
+    app.section = 'intro1'
+    
+    app.startTimeSchedule = None
+    app.endTimeSchedule = None
     app.durationOfDay = 0
 
     app.startTimeDisplay = None
@@ -187,7 +212,7 @@ def onAppStart(app):
     app.schedule = []
     app.leftOverTasks = []
 def main():
-    runAppWithScreens(initialScreen = "planner")
+    runAppWithScreens(initialScreen = "landing")
 
 main()
 

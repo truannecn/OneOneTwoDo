@@ -67,14 +67,21 @@ class Event():
         if isinstance(other, Event):
             return ((self.startTimeFloat < other.startTimeFloat) or
                     (self.startTimeFloat == other.startTimeFloat and self.endTimeFloat < other.endTimeFloat))
-        
-    
     
         
-      
-        
+################
+## REDRAW ALL ##
+################       
         
 def scheduler_redrawAll(app):
+    drawImage(app.todoListImage, 0, 0, width = app.width, height = app.height)
+    ### NAVI BUTTONS
+    
+    drawHomeOnSched(app, 20, app.height*.3, 200, 50)
+    drawTasksOnSched(app, 20, app.height*.4, 200, 50)
+    drawTimerOnSched(app, 20, app.height*.5, 200, 50)
+    drawPlannerOnSched(app, 20, app.height*.6, 200, 50)
+    
     ## Title Top
     if app.section == 'intro1' or app.section == 'intro2':
         drawLabel('Welcome to the Scheduler!', app.width/2, 60, font = 'optima', size = 30)
@@ -87,16 +94,49 @@ def scheduler_redrawAll(app):
     if app.section == 'schedule':
         displaySchedule(app)
 
+#################
+## MOUSE PRESS ##
+################# 
+
 def scheduler_onMousePress(app, mouseX, mouseY):
+    ## NAVI BUTTONS ##
+    if inHomeOnScheduler(mouseX, mouseY):
+        app.homeOnSchedulerFill = None
+        setActiveScreen('landing')
+    
+    if inTimerOnScheduler(mouseX, mouseY):
+        print('In timer!')
+        app.timerOnSchedulerFill = None
+        setActiveScreen('timerPage')
+    
+    if inTasksOnScheduler(mouseX, mouseY):
+        app.tasksOnSchedulerFill = None
+        setActiveScreen('taskPage')
+    
+    if inPlannerOnScheduler(mouseX, mouseY):
+        app.timerOnSchedulerFill = None
+        setActiveScreen('planner')
+    
+    ## SECTION 1
+    
     if inStartTime(mouseX, mouseY):
         response = app.getTextInput('When would you like to start your day?')
-        app.startTimeDisplay = response
-        app.startTimeSchedule = convertTime(response)
+        try:
+            app.startTimeDisplay = response
+            app.startTimeSchedule = convertTime(response)
+        except:
+            app.startTimeDisplay = None
+            app.showMessage('Oops! Try again in the right format!')
+            return
     if inEndTime(mouseX, mouseY):
         response = app.getTextInput('When would you like to end your day?')
-        app.endTimeSchedule = response
-        app.endTimeDisplay = response
-        app.endTimeSchedule = convertTime(response)
+        try:
+            app.endTimeDisplay = response
+            app.endTimeSchedule = convertTime(response)
+        except:
+            app.endTimeDisplay = None
+            app.showMessage('Oops! Try again in the right format!')
+            return
         
         ## Calculate total time
         app.durationOfDay = app.endTimeSchedule - app.startTimeSchedule
@@ -107,7 +147,7 @@ def scheduler_onMousePress(app, mouseX, mouseY):
     
     if app.section == 'intro2' and inEvent(mouseX, mouseY):
         response = app.getTextInput('Enter event in [eventName, startTime, endTime] (Meeting, 1:00pm, 2:00pm):')
-        if validEventResponse(response):
+        try:
             ## Get event name
             temp = response
             firstIndex = temp.index(',')
@@ -130,11 +170,11 @@ def scheduler_onMousePress(app, mouseX, mouseY):
             mostRecentEvent.convertStartTime()
             mostRecentEvent.convertEndTime()
             mostRecentEvent.eventDuration = mostRecentEvent 
-            print(f'Start time: {mostRecentEvent.startTimeFloat}')
-            print(f'End Time: {mostRecentEvent.endTimeFloat}')
             mostRecentEvent.eventDuration = mostRecentEvent.endTimeFloat - mostRecentEvent.startTimeFloat
-        else:
+        except:
             app.showMessage('Oops, please try again! Consider the correct format and having valid end and start times!')
+            if len(app.events) > 0:
+                app.events.pop()
         
         
     if app.section == 'intro2' and inCreate(mouseX, mouseY):
@@ -147,9 +187,56 @@ def scheduler_onMousePress(app, mouseX, mouseY):
                 
         app.section = 'schedule'
         
-################################
-### Displaying start/end to day
-################################
+    
+    if app.section == 'schedule' and inReturnButton(mouseX, mouseY):
+        app.section = 'intro2'
+
+
+###################
+## ON MOUSE MOVE ##
+###################
+
+def scheduler_onMouseMove(app, mouseX, mouseY):
+    ## NAVI BUTTONS ##
+    if inHomeOnScheduler(mouseX, mouseY):
+        app.homeOnSchedulerFill = 'gray'
+    else:
+        app.homeOnSchedulerFill = None
+    
+    if inTimerOnScheduler(mouseX, mouseY):
+        app.timerOnSchedulerFill = 'gray'
+    else:
+        app.timerOnSchedulerFill = None
+    
+    if inTasksOnScheduler(mouseX, mouseY):
+        app.tasksOnSchedulerFill = 'gray'
+    else:
+        app.tasksOnSchedulerFill = None
+    
+    if inPlannerOnScheduler(mouseX, mouseY):
+        app.plannerOnSchedulerFill = 'gray'
+    else:
+        app.plannerOnSchedulerFill = None
+    
+    if inReturnButton(mouseX, mouseY):
+        app.returnFill = 'gray'
+    else:
+        app.returnFill = None
+        
+    if inNext1(mouseX, mouseY):
+        app.next1Fill = 'gray'
+    else:
+        app.next1Fill = None
+        
+    if inCreate(mouseX, mouseY):
+        app.createButtonFill = 'gray'
+    else:
+        app.createButtonFill = None
+
+
+###################################
+### Displaying start/end to day ###
+###################################
 
 def displayIntroSection1():
     ## Fill out start/end time instructions
@@ -175,8 +262,8 @@ def displayIntroSection1():
         
     ## Draw Next Button
     if app.startTimeDisplay != None and app.endTimeDisplay != None:
-        drawRect(app.width*.5 - 50, 420, 100, 40, fill = None, border = 'black')
-        drawLabel('Next', app.width*.5, 440, size = 20, fill = 'black', font = 'optima')
+        drawRect(app.width*.5 - 50, 600, 100, 40, fill = app.next1Fill, border = 'black')
+        drawLabel('Next', app.width*.5, 620, size = 20, fill = 'black', font = 'optima')
 
 
 ###############################
@@ -202,7 +289,7 @@ def displayIntroSection2():
     drawLabel('+', app.width/2, 400 + (30 * (len(app.events) + 1)), font = 'optima', size = 22)
     
     ## Create Schedule Button
-    drawRect(app.width/2 - 100, 460 + (30 * (len(app.events) + 1)), 200, 50, fill = None, border = 'black')
+    drawRect(app.width/2 - 100, 460 + (30 * (len(app.events) + 1)), 200, 50, fill = app.createButtonFill, border = 'black')
     drawLabel("Create Schedule!", app.width/2, 485 + (30 * (len(app.events) + 1)), font = 'optima', size = 20)
     
 ###################################
@@ -298,7 +385,11 @@ def displaySchedule(app):
             currItem = app.leftOverTasks[i]
             if isinstance(currItem, taskPage.Task):
                 drawLabel(f'{currItem.taskName}: {currItem.taskHours} hours and {currItem.taskMinutes} minutes', app.width/2, (360 + (len(app.schedule) * 35) + (30*i)), font = 'optima', size = 20)
-                
+    
+    ## Return to events page button
+    drawRect(app.width/2 - 100, app.height*.8, 200, 50, fill = app.returnFill, border = 'black')
+    drawLabel('Return to Events', app.width/2, app.height*.8 + 25, font='optima', size = 17)
+    
 ############################
 ## Other helper functions ##
 ############################
@@ -310,13 +401,28 @@ def inEndTime(mouseX, mouseY):
     return app.width*.6 - 50 < mouseX < app.width*.6 + 50 and 350 < mouseY < 390
 
 def inNext1(mouseX, mouseY):
-    return app.width*.5 - 50 < mouseX < app.width*.5 + 50 and 420 < mouseY < 460
+    return app.width*.5 - 50 < mouseX < app.width*.5 + 50 and 600 < mouseY < 640
 
 def inEvent(mouseX, mouseY):
     return distance(mouseX, mouseY, app.width/2, 400 + (30 * (len(app.events) + 1))) < 15
 
 def inCreate(mouseX, mouseY):
     return app.width/2 - 100 < mouseX < app.width/2 + 100 and 460 + (30 * (len(app.events) + 1)) < mouseY < 510 + (30 * (len(app.events) + 1))
+
+def inHomeOnScheduler(mouseX, mouseY):
+    return 20 < mouseX < 220 and app.height*.3 < mouseY < app.height*.3 + 50
+    
+def inTasksOnScheduler(mouseX, mouseY):
+    return 20 < mouseX < 220 and app.height*.4 < mouseY < app.height*.4 + 50
+    
+def inTimerOnScheduler(mouseX, mouseY):
+    return 20 < mouseX < 220 and app.height*.5 < mouseY < app.height*.5 + 50
+    
+def inPlannerOnScheduler(mouseX, mouseY):
+    return 20 < mouseX < 220 and app.height*.6 < mouseY < app.height*.6 + 50
+
+def inReturnButton(mouseX, mouseY):
+    return app.width/2 - 100 < mouseX < app.width/2 + 100 and app.height*.8 < mouseY < app.height*.8 + 50
 
 def distance(x0, y0, x1, y1):
     a = (x1 - x0) ** 2
@@ -329,7 +435,7 @@ def validEventResponse(response):
 def convertTime(stringTime):
     if stringTime[len(stringTime)-2:] == 'am':
         isAM = True
-    else:
+    elif stringTime[len(stringTime)-2:] == 'pm':
         isAM = False
     
     temp = stringTime[:-2]
@@ -346,4 +452,24 @@ def convertTime(stringTime):
     
     result = hour + (minute/60)
     return result
+
+##################
+## NAVI BUTTONS ##
+##################
+
+def drawHomeOnSched(app, buttonLeft, buttonTop, width, height):
+    drawRect(buttonLeft, buttonTop, width, height, fill = app.homeOnSchedulerFill, border = 'black', opacity = 50)
+    drawLabel(f'Home', buttonLeft + width/2, buttonTop + height/2, font = 'optima', size = 20)
+  
+def drawTimerOnSched(app, buttonLeft, buttonTop, width, height):
+    drawRect(buttonLeft, buttonTop, width, height, fill = app.timerOnSchedulerFill, border = 'black', opacity = 50)
+    drawLabel(f'Timer', buttonLeft + width/2, buttonTop + height/2, font = 'optima', size = 20)
+
+def drawTasksOnSched(app, buttonLeft, buttonTop, width, height):
+    drawRect(buttonLeft, buttonTop, width, height, fill = app.tasksOnSchedulerFill, border = 'black', opacity = 50)
+    drawLabel(f'Tasks', buttonLeft + width/2, buttonTop + height/2, font = 'optima', size = 20)
+    
+def drawPlannerOnSched(app, buttonLeft, buttonTop, width, height):
+    drawRect(buttonLeft, buttonTop, width, height, fill = app.plannerOnSchedulerFill, border = 'black', opacity = 50)
+    drawLabel(f'Planner', buttonLeft + width/2, buttonTop + height/2, font = 'optima', size = 20)
     

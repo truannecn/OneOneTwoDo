@@ -6,10 +6,11 @@ import string
 
 
 def timerPage_redrawAll(app):
+    drawImage(app.genBgImage, 0, 0, width = app.width, height = app.height)
     
     ## outer rectangle
     drawLabel('Pomodoro Timer', app.width/2, 100, size = 50, font = 'optima')
-    drawRect(app.width * .25, 250, app.width * .50, 400, fill = None, border = 'black')
+    drawRect(app.width * .25, 250, app.width * .50, 400, fill = app.timerBoxFill, opacity = 50, border = 'black')
     
     ## NAVI BUTTONS
     drawHomeButton(app, app.width * .2 - 100, app.height * .85, 200, 50)
@@ -26,7 +27,7 @@ def timerPage_redrawAll(app):
     if app.setUpPage:
         ## instructions
         
-        drawLabel('Welcome to the pomodoro timer!', boxLeft + boxWidth/2, boxTop + 20, size = 15, font = 'optima')
+        drawLabel('Welcome to the pomodoro timer!', boxLeft + boxWidth/2, boxTop + 20, size = 15, font = 'optima', bold = True)
         
         drawLabel('To begin, enter the number of minutes you would like to work at a time.', boxLeft + boxWidth/2, boxTop + 50, size = 14, font = 'optima')
         drawLabel('(25 is the most standard if you are not sure where to start!)', boxLeft + boxWidth/2, boxTop + 70, size = 12, font = 'optima')
@@ -74,7 +75,7 @@ def timerPage_redrawAll(app):
     else:
         timerStatus = "Take a Break!"
         
-    drawLabel(timerStatus, app.width/2, 270, size = 30, font = 'optima')
+    drawLabel(timerStatus, app.width/2, 300, size = 30, font = 'optima')
     
     if app.working and not app.setUpPage:
         if app.currWorkTimeDisplayed//60 < 10:
@@ -97,7 +98,7 @@ def timerPage_redrawAll(app):
         else:
             buttonMessage = 'Pause Timer'
             
-        drawRect(app.width/2 - 100, 450, 200, 50, fill = None, border = 'black')
+        drawRect(app.width/2 - 100, 450, 200, 50, fill = app.timerButtonFill, border = 'black')
         drawLabel(buttonMessage, app.width/2, 475, size = 25, font = 'optima')
     
     if not app.working and not app.setUpPage:
@@ -119,7 +120,7 @@ def timerPage_redrawAll(app):
         else:
             buttonMessage = 'Pause Timer'
             
-        drawRect(app.width/2 - 100, 450, 200, 50, fill = None, border = 'black')
+        drawRect(app.width/2 - 100, 450, 200, 50, fill = app.timerButtonFill, border = 'black')
         drawLabel(buttonMessage, app.width/2, 475, size = 25, font = 'optima')
     
 def timerPage_onMousePress(app, mouseX, mouseY):
@@ -179,6 +180,10 @@ def timerPage_onMousePress(app, mouseX, mouseY):
     if inPlanner(app, mouseX, mouseY):
         app.plannerOnTimerFill = None
         setActiveScreen('planner')
+    
+    if inScheduler(app, mouseX, mouseY):
+        app.schedulerOnTimerFill = None
+        setActiveScreen('scheduler')
 
 def timerPage_onKeyPress(app, key):
     if app.inWorkBox:
@@ -234,6 +239,11 @@ def timerPage_onMouseMove(app, mouseX, mouseY):
     else:
         app.schedulerOnTimerFill = None
         
+    if inTimerButton(mouseX, mouseY):
+        app.timerButtonFill = 'gray'
+    else:
+        app.timerButtonFill = None
+        
 
 
 def inTimeControlButton(app, mouseX, mouseY):
@@ -271,6 +281,7 @@ def timerPage_onStep(app):
     app.stepsPerSecond = 1
     if not app.setUpPage:
         if app.working:
+            app.timerBoxFill = 'lightSteelBlue'
             if not app.timerPaused and app.currWorkTimeDisplayed > 0:
                 app.currWorkTimeDisplayed -= 1
             if app.currWorkTimeDisplayed == 0:
@@ -279,6 +290,7 @@ def timerPage_onStep(app):
                 app.currBreakTimeDisplayed = app.breakTime
         
         else:
+            app.timerBoxFill = 'darkSeaGreen'
             if not app.timerPaused and app.currBreakTimeDisplayed > 0:
                 app.currBreakTimeDisplayed -= 1
             if app.currBreakTimeDisplayed == 0:
@@ -317,3 +329,6 @@ def inPlanner(app, mouseX, mouseY):
 
 def inScheduler(app, mouseX, mouseY):
     return app.width * .8 - 100 < mouseX < app.width * .8 - 100 + 200 and app.height * .85 < mouseY < app.height * .85 + 50
+
+def inTimerButton(mouseX, mouseY):
+    return app.width/2 - 100 < mouseX < app.width/2 + 100 and 450 < mouseY < 500

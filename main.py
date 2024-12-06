@@ -154,11 +154,25 @@ def onAppStart(app):
     app.dragOffsetY = 0  # Offset between mouse click and block top
     app.validDropZoneLeft = app.width / 2  # Left edge of the daily view
     app.validDropZoneWidth = app.dailyViewWidth  # Width of the daily view
-
+    app.plannerTasks = []
     
+    ####################################
+    ## SCHEDULER PAGE VARIABLES
+    ####################################
+    
+    app.section = 'intro2'
+    
+    app.startTimeSchedule = None
+    app.endTimeSchedule = None
+    app.durationOfDay = 0
+
+    app.startTimeDisplay = None
+    app.endTimeDisplay = None
+
+    app.events = []
 
 def main():
-    runAppWithScreens(initialScreen = "landing")
+    runAppWithScreens(initialScreen = "scheduler")
 
 main()
 

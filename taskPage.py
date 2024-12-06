@@ -16,6 +16,8 @@ class Task():
         self.circleFill = None
         self.page = 1
         
+        self.taskFloat = self.taskHours + (self.taskMinutes / 60)
+        
         
     def __repr__(self):
         return f'{self.taskName}'

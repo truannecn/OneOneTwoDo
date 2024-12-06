@@ -162,8 +162,8 @@ def onAppStart(app):
     
     app.section = 'intro2'
     
-    app.startTimeSchedule = None
-    app.endTimeSchedule = None
+    app.startTimeSchedule = 10
+    app.endTimeSchedule = 21
     app.durationOfDay = 0
 
     app.startTimeDisplay = None
@@ -171,8 +171,10 @@ def onAppStart(app):
 
     app.events = []
 
+    app.schedule = []
+    app.leftOverTasks = []
 def main():
-    runAppWithScreens(initialScreen = "scheduler")
+    runAppWithScreens(initialScreen = "landing")
 
 main()
 

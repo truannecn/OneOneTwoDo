@@ -1,7 +1,9 @@
 from cmu_graphics import *
 from landing import *
-from taskPage import *
+import taskPage
 from scheduler import *
+import copy
+from datetime import date
 
 class Event():
     def __init__(self, eventName, startTime, endTime):
@@ -46,17 +48,17 @@ class Event():
         colonIndex = temp.index(':')
         
         if self.isAM == True or (self.isAM == False and int(temp[:colonIndex]) == 12):
-            self.startHour = int(temp[:colonIndex])
+            self.endHour = int(temp[:colonIndex])
         elif not self.isAM and int(temp[:colonIndex]) != 12:
-            self.startHour = int(temp[:colonIndex])
-            self.startHour += 12
+            self.endHour = int(temp[:colonIndex])
+            self.endHour += 12
         
-        self.startMinute = int(temp[colonIndex+1:])
+        self.endMinute = int(temp[colonIndex+1:])
         
-        self.endTimeFloat = self.startHour + (self.startMinute/60)
+        self.endTimeFloat = self.endHour + (self.endMinute/60)
         
     def __eq__(self, other):
-        if isinstance(other, Event):
+        if isinstance(other, taskPage.Task):
             return (self.eventName == other.eventName and
                     self.startTimeFloat == other.startTimeFloat and
                     self.endTimeFloat == other.endTimeFloat)
@@ -74,13 +76,16 @@ class Event():
         
 def scheduler_redrawAll(app):
     ## Title Top
-    drawLabel('Welcome to the Scheduler!', app.width/2, 60, font = 'optima', size = 30)
-    drawLabel('We make planning out your day all the more simpler. :)', app.width/2, 100, font = 'optima', size = 22)
-    
+    if app.section == 'intro1' or app.section == 'intro2':
+        drawLabel('Welcome to the Scheduler!', app.width/2, 60, font = 'optima', size = 30)
+        drawLabel('We make planning out your day all the more simpler. :)', app.width/2, 100, font = 'optima', size = 22)
+        
     if app.section == 'intro1':
         displayIntroSection1()    
     if app.section == 'intro2':
         displayIntroSection2() 
+    if app.section == 'schedule':
+        displaySchedule(app)
 
 def scheduler_onMousePress(app, mouseX, mouseY):
     if inStartTime(mouseX, mouseY):
@@ -134,9 +139,13 @@ def scheduler_onMousePress(app, mouseX, mouseY):
         
     if app.section == 'intro2' and inCreate(mouseX, mouseY):
         generateSchedule()
+        for i in range(len(app.schedule)):
+            currItem = app.schedule[i]
+            if isinstance(currItem, taskPage.Task):
+                currItem.assignStartDisplay()
+                currItem.assignEndDisplay()
+                
         app.section = 'schedule'
-        
-        displaySchedule()
         
 ################################
 ### Displaying start/end to day
@@ -201,10 +210,95 @@ def displayIntroSection2():
 ###################################
 
 def generateSchedule():
+    schedule = copy.copy(app.events)
+    tasks = copy.copy(app.tasks)
+    app.schedule = []
+    result = generate(schedule, tasks, app.leftOverTasks)
+    app.schedule = result
     
     
-    
+def generate(schedule, tasks, leftOverTasks):
+    if tasks == []:
+        app.leftOverTasks = leftOverTasks
+        return schedule
+    else:
+        for i in range(len(schedule) + 1):
+            currentTask = tasks[0]
+            
+            if isLegal(schedule, currentTask, i):
+                schedule.insert(i, currentTask)
+                solution = generate(schedule, tasks[1:], leftOverTasks)
+                if solution != None:
+                    return solution
 
+                schedule.pop(i)
+        
+        leftOverTasks.append(tasks[0])
+        return generate(schedule, tasks[1:], leftOverTasks)
+
+def isLegal(schedule, currentTask, insertIndex):
+    ## Checks when you are inserting something at the very beginning of the schedule
+    if insertIndex == 0:
+        if schedule != []:
+            currEvent = schedule[0]
+            gap = currEvent.startTimeFloat - app.startTimeSchedule
+            if gap >= currentTask.taskFloat:
+                currentTask.startTimeFloat = app.startTimeSchedule
+                currentTask.assignEndTime()
+                return True
+        else: ## Chatgpt suggested I implement a check for if the schedule list is empty
+            if app.endTimeSchedule - app.startTimeSchedule >= currentTask.taskTime:
+                currentTask.startTimeFloat = app.startTimeSchedule
+                currentTask.assignEndTime()
+                return True
+    ## checks when the task is at the very end of the schedule list
+    elif insertIndex == len(schedule):
+        currItem = schedule[-1]
+        gap = app.endTimeSchedule - currItem.endTimeFloat
+        if currentTask.taskFloat <= gap:
+            currentTask.startTimeFloat = currItem.endTimeFloat
+            currentTask.assignEndTime()
+            return True
+    
+    ## checks when the tasks are just in the middle of the list
+    else:
+        prevItem = schedule[insertIndex-1]
+        nextItem = schedule[insertIndex]
+        gap = nextItem.startTimeFloat - prevItem.endTimeFloat
+        if currentTask.taskFloat <= gap:
+            currentTask.startTimeFloat = prevItem.endTimeFloat
+            currentTask.assignEndTime()
+            return True
+    
+    return False
+
+
+############################
+## DISPLAY FINAL SCHEDULE ##
+############################
+
+def displaySchedule(app):
+    
+    ## TITLE ##
+    today = date.today()
+    
+    drawLabel(f'Recommended Schedule for {today.month}/{today.day}/{today.year}', app.width/2, 150, font = 'optima', size = 35, bold = True)    
+    drawLine(app.width/2-50, 200, app.width/2+50, 200, lineWidth=2)
+    for i in range(len(app.schedule)):
+        currItem = app.schedule[i]
+        if isinstance(currItem, taskPage.Task):
+            drawLabel(f'{currItem.taskName}: {currItem.startTimeDisplay} - {currItem.endTimeDisplay}', app.width/2, 230 + 35*i, font = 'optima', size = 22)
+        elif isinstance(currItem, Event):
+            drawLabel(f'{currItem.eventName}: {currItem.startTime} - {currItem.endTime}', app.width/2, 230 + 35*i, font = 'optima', size = 22)
+
+    if app.leftOverTasks != []:
+        drawLabel('Leftover Tasks', app.width/2, 300 + (len(app.schedule) * 35), font = 'optima', size = 35, bold = True)    
+        drawLine(app.width/2-50, 370, app.width/2+50, 370, lineWidth=2)
+        for i in range(len(app.leftOverTasks)):
+            currItem = app.leftOverTasks[i]
+            if isinstance(currItem, taskPage.Task):
+                drawLabel(f'{currItem.taskName}: {currItem.taskHours} hours and {currItem.taskMinutes} minutes', app.width/2, (360 + (len(app.schedule) * 35) + (30*i)), font = 'optima', size = 20)
+                
 ############################
 ## Other helper functions ##
 ############################

@@ -1,6 +1,5 @@
 from cmu_graphics import *
 from landing import *
-from scheduler import *
 from timerPage import *
 import string
 
@@ -17,7 +16,9 @@ class Task():
         self.page = 1
         
         self.taskFloat = self.taskHours + (self.taskMinutes / 60)
-        
+        print(self.taskFloat)
+        self.startTimeFloat = 0
+        self.endTimeFloat = 0
         
     def __repr__(self):
         return f'{self.taskName}'
@@ -47,6 +48,49 @@ class Task():
         drawRect(self.boxLeft, self.boxTop, self.width, self.height, fill = 'burlyWood', border = 'black')
         drawLabel(self.taskName, self.boxLeft+20, self.boxTop + 20, font = 'optima', size = 25, align = 'left')
     
+    def assignEndTime(self):
+        self.endTimeFloat = self.startTimeFloat + self.taskFloat
+    
+    def assignStartDisplay(self):
+        if self.startTimeFloat < 12:
+            self.startIsAM = True
+            halfOfDay = 'am'
+        else:
+            self.startIsAM = False
+            halfOfDay = 'pm'
+        
+        startHour = self.startTimeFloat // 1
+        if startHour > 12:
+            startHour %= 12
+        
+        startHour = int(startHour)
+        
+        startMinute = (self.startTimeFloat % 1) * 60
+        if startMinute < 10:
+            startMinute = '0' + str(int(startMinute))
+        else:
+            startMinute = int(startMinute)
+        self.startTimeDisplay = f'{startHour}:{startMinute}{halfOfDay}'
+    
+    def assignEndDisplay(self):
+        if self.endTimeFloat < 12:
+            halfOfDay = 'am'
+        else:
+            halfOfDay = 'pm'
+        
+        endHour = self.endTimeFloat // 1
+        if endHour > 12:
+            endHour %= 12
+        endHour = int(endHour)
+        
+        endMinute = (self.endTimeFloat % 1) * 60
+        if endMinute < 10:
+            endMinute = '0' + str(int(endMinute))
+        else:
+            endMinute = int(endMinute)
+        self.endTimeDisplay = f'{endHour}:{endMinute}{halfOfDay}'
+        
+        
         
 ########################################
 # TASK PAGE

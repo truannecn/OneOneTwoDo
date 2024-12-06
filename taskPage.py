@@ -359,9 +359,7 @@ def taskPage_onMouseMove(app, mouseX, mouseY):
             app.editButtonFill = None
         
 
-            
-
-            
+        
 def taskPage_onKeyPress(app, key):
     if app.inTaskBox:
         if key == 'space':
@@ -371,7 +369,9 @@ def taskPage_onKeyPress(app, key):
         elif len(key) == 1:
             app.currentTask += key
         
-        print(app.currentTask)
+        if app.editMode:
+            app.currentTaskBeingEdited.taskName = app.currentTask
+
             
     if app.inHourBox:
         if key == 'backspace' and app.currentHour != '':
@@ -382,7 +382,7 @@ def taskPage_onKeyPress(app, key):
             else:
                 if int(app.currentHour + key) < 11:
                     app.currentHour += key
-    
+                    
     if app.inMinuteBox:
         if key == 'backspace' and app.currentMinute != '':
             app.currentMinute = app.currentMinute[:-1]
@@ -392,7 +392,7 @@ def taskPage_onKeyPress(app, key):
             else:
                 if int(app.currentMinute + key) < 60:
                     app.currentMinute += key
-    
+                
         
         
 def drawAddTaskPopup(app):

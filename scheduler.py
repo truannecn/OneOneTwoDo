@@ -289,9 +289,10 @@ def displayIntroSection2():
     drawLabel('+', app.width/2, 400 + (30 * (len(app.events) + 1)), font = 'optima', size = 22)
     
     ## Create Schedule Button
-    drawRect(app.width/2 - 100, 460 + (30 * (len(app.events) + 1)), 200, 50, fill = app.createButtonFill, border = 'black')
-    drawLabel("Create Schedule!", app.width/2, 485 + (30 * (len(app.events) + 1)), font = 'optima', size = 20)
-    
+    if len(app.events) > 0:
+        drawRect(app.width/2 - 100, 460 + (30 * (len(app.events) + 1)), 200, 50, fill = app.createButtonFill, border = 'black')
+        drawLabel("Create Schedule!", app.width/2, 485 + (30 * (len(app.events) + 1)), font = 'optima', size = 20)
+        
 ###################################
 ## Schedule Generating Algorithm ##
 ###################################
@@ -380,7 +381,7 @@ def displaySchedule(app):
 
     if app.leftOverTasks != []:
         drawLabel('Leftover Tasks', app.width/2, 300 + (len(app.schedule) * 35), font = 'optima', size = 35, bold = True)    
-        drawLine(app.width/2-50, 370, app.width/2+50, 370, lineWidth=2)
+        drawLine(app.width/2-50, 300 + (len(app.schedule) * 35) + 30, app.width/2+50, 300 + (len(app.schedule) * 35) + 30, lineWidth=2)
         for i in range(len(app.leftOverTasks)):
             currItem = app.leftOverTasks[i]
             if isinstance(currItem, taskPage.Task):
